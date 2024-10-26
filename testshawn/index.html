@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylish Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #282c34;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            color: #ffffff;
+        }
+        header {
+            background-color: #4a90e2; /* Darker blue */
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .game-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        #snakeGame {
+            border: 2px solid #4a90e2; /* Darker blue */
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        .scoreboard {
+            margin-right: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #444;
+            padding: 15px;
+            border-radius: 5px;
+            min-width: 150px;
+            color: #4a90e2; /* Darker blue */
+        }
+        .scoreboard h2 {
+            margin: 0;
+            color: #4a90e2; /* Darker blue */
+        }
+        #resetButton {
+            display: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4a90e2; /* Darker blue */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        #resetButton:hover {
+            background-color: #357ab8; /* Darker hover effect */
+        }
+        footer {
+            background-color: #4a90e2; /* Darker blue */
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Stylish Snake Game
+    </header>
+    <div class="game-container">
+        <div class="scoreboard">
+            <h2>Score: <span id="score">0</span></h2>
+            <button id="resetButton">Play Again</button>
+        </div>
+        <canvas id="snakeGame" width="400" height="400"></canvas>
+    </div>
+    <footer>
+        &copy; 2024 Snake Game. All rights reserved.
+    </footer>
+    <script>
+        const canvas = document.getElementById('snakeGame');
+        const ctx = canvas.getContext('2d');
+        const box = 20;
+        let snake, direction, food, score, game;
+
+        function resetGame() {
+            snake = [{ x: 9 * box, y: 9 * box }];
+            direction = 'RIGHT';
+            food = generateFood();
+            score = 0;
+            document.getElementById('score').innerText = score;
+            document.getElementById('resetButton').style.display = 'none';
+            game = setInterval(draw, 100);
+        }
+
+        function generateFood() {
+            return {
+                x: Math.floor(Math.random() * 20) * box,
+                y: Math.floor(Math.random() * 20) * box
+            };
+        }
+
+        function changeDirection(event) {
+            if (event.key === 'a' && direction !== 'RIGHT') {
+                direction = 'LEFT';
+            } else if (event.key === 'w' && direction !== 'DOWN') {
+                direction = 'UP';
+            } else if (event.key === 'd' && direction !== 'LEFT') {
+                direction = 'RIGHT';
+            } else if (event.key === 's' && direction !== 'UP') {
+                direction = 'DOWN';
+            }
+        }
+
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x === array[i].x && head.y === array[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the snake
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? 'green' : 'lightgreen';
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = 'darkgreen';
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            // Draw the food
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x, food.y, box, box);
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction === 'LEFT') snakeX -= box;
+            if (direction === 'UP') snakeY -= box;
+            if (direction === 'RIGHT') snakeX += box;
+            if (direction === 'DOWN') snakeY += box;
+
+            // Check for food collision
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                document.getElementById('score').innerText = score;
+                food = generateFood();
+            } else {
+                snake.pop();
+            }
+
+            let newHead = { x: snakeX, y: snakeY };
+
+            // Check for wall and self-collision
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+                document.getElementById('resetButton').style.display = 'block'; // Show the reset button
+                alert('Game Over! Your score: ' + score);
+            }
+
+            snake.unshift(newHead);
+        }
+
+        // Start the game on load
+        resetGame();
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.addEventListener('keydown', changeDirection);
+    </script>
+</body>
+</html>
